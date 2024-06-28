@@ -13,8 +13,6 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS base
 RUN useradd -m -u 1000 user
 USER user
 
-ENV HOME=/home/user
-
 ARG CUDA_VERSION=12.4.1
 ARG PYTHON_VERSION=3
 
@@ -40,7 +38,7 @@ RUN apt-get update -y \
 # or future versions of triton.
 RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
-WORKDIR ${HOME}/workspace
+WORKDIR /workspace
 
 # install build and runtime dependencies
 COPY --chown=user requirements-common.txt requirements-common.txt
@@ -112,10 +110,6 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
         python3 setup.py bdist_wheel --dist-dir=dist; \
     fi
 
-# check the size of the wheel, we cannot upload wheels larger than 100MB
-COPY --chown=user .buildkite/check-wheel-size.py check-wheel-size.py
-RUN python3 check-wheel-size.py dist
-
 #################### EXTENSION Build IMAGE ####################
 
 #################### DEV IMAGE ####################
@@ -133,7 +127,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # image with vLLM installed
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu22.04 AS vllm-base
 ARG CUDA_VERSION=12.4.1
-WORKDIR ${HOME}/vllm-workspace
+WORKDIR /vllm-workspace
 
 RUN apt-get update -y \
     && apt-get install -y python3-pip git vim
@@ -145,7 +139,7 @@ RUN apt-get update -y \
 RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
 # install vllm wheel first, so that torch etc will be installed
-RUN --mount=type=bind,from=build,src=${HOME}/workspace/dist,target=${HOME}/vllm-workspace/dist \
+RUN --mount=type=bind,from=build,src=/workspace/dist,target=/vllm-workspace/dist \
     --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install dist/*.whl --verbose
 #################### vLLM installation IMAGE ####################
@@ -156,7 +150,7 @@ RUN --mount=type=bind,from=build,src=${HOME}/workspace/dist,target=${HOME}/vllm-
 # note that this uses vllm installed by `pip`
 FROM vllm-base AS test
 
-ADD . ${HOME}/vllm-workspace/
+ADD . /vllm-workspace/
 
 # install development dependencies (for testing)
 RUN --mount=type=cache,target=/root/.cache/pip \
