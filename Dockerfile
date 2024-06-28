@@ -14,7 +14,6 @@ RUN useradd -m -u 1000 user
 USER user
 
 ENV HOME=/home/user
-ENV PATH=${HOME}/.local/bin:${PATH}
 
 ARG CUDA_VERSION=12.4.1
 ARG PYTHON_VERSION=3
