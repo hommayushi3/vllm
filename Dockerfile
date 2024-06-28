@@ -41,8 +41,8 @@ RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 WORKDIR /workspace
 
 # install build and runtime dependencies
-COPY --chown=user requirements-common.txt requirements-common.txt
-COPY --chown=user requirements-cuda.txt requirements-cuda.txt
+COPY requirements-common.txt requirements-common.txt
+COPY requirements-cuda.txt requirements-cuda.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install -r requirements-cuda.txt
 
@@ -60,7 +60,7 @@ FROM base AS build
 ARG PYTHON_VERSION=3
 
 # install build dependencies
-COPY --chown=user requirements-build.txt requirements-build.txt
+COPY requirements-build.txt requirements-build.txt
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install -r requirements-build.txt
@@ -69,14 +69,14 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN apt-get update -y && apt-get install -y ccache
 
 # files and directories related to build wheels
-COPY --chown=user csrc csrc
-COPY --chown=user setup.py setup.py
-COPY --chown=user cmake cmake
-COPY --chown=user CMakeLists.txt CMakeLists.txt
-COPY --chown=user requirements-common.txt requirements-common.txt
-COPY --chown=user requirements-cuda.txt requirements-cuda.txt
-COPY --chown=user pyproject.toml pyproject.toml
-COPY --chown=user vllm vllm
+COPY csrc csrc
+COPY setup.py setup.py
+COPY cmake cmake
+COPY CMakeLists.txt CMakeLists.txt
+COPY requirements-common.txt requirements-common.txt
+COPY requirements-cuda.txt requirements-cuda.txt
+COPY pyproject.toml pyproject.toml
+COPY vllm vllm
 
 # max jobs used by Ninja to build extensions
 ARG max_jobs=2
@@ -115,9 +115,9 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
 #################### DEV IMAGE ####################
 FROM base as dev
 
-COPY --chown=user requirements-lint.txt requirements-lint.txt
-COPY --chown=user requirements-test.txt requirements-test.txt
-COPY --chown=user requirements-dev.txt requirements-dev.txt
+COPY requirements-lint.txt requirements-lint.txt
+COPY requirements-test.txt requirements-test.txt
+COPY requirements-dev.txt requirements-dev.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install -r requirements-dev.txt
 
